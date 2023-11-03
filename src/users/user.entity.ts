@@ -13,4 +13,10 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  // Hook Decorator
+  // @AfterInsert()
+  // logInsert() {
+  //   console.log('inserted user with id', this.id);
+  // }
 }
