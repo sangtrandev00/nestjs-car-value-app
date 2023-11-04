@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -8,6 +7,7 @@ export class User {
   @Column()
   email: string;
 
+  // Có cần các thao tác khác không hay chỉ cần làm như vậy thôi!
   @Column()
   password: string;
 

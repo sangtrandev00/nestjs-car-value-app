@@ -7,6 +7,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -15,49 +16,81 @@ import {
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
+
+import { Serialize } from '../interceptors/serialize.interceptor';
+import { UserDto } from './dtos/user.dto';
+
 @Controller('auth')
+@Serialize(UserDto)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
+  // Thứ tự setup các route này có ảnh hưởng gì đến việc request lên server hay không ?
+
   @Post('/signup')
   async createUser(@Body() body: CreateUserDto) {
-    const createdUser = await this.usersService.create(
-      body.email,
-      body.password,
-    );
-    console.log('createdUser: ', createdUser);
-    return `User created`;
+    try {
+      const createdUser = await this.usersService.create(
+        body.email,
+        body.password,
+      );
+      console.log('createdUser: ', createdUser);
+      return `User created`;
+    } catch (error) {
+      throw new NotFoundException();
+    }
   }
 
+  // Sao cái này không hiệu quả ?
+  // Error => route này phải nằm trước route /:id
+  @Get('/all')
+  async getAllUsersByEmail(@Query('email') email: string) {
+    try {
+      console.log('email: ', email);
+      const allUsers = await this.usersService.findByEmail(email);
+      return allUsers;
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
+  @Serialize(UserDto)
   @Get()
   async findUser(@Query() { email }: { email: string }) {
     console.log('email: ', email);
 
     const user = await this.usersService.findOne(email);
+    if (!user) {
+      throw new NotFoundException('user not found!');
+    }
+
     console.log('user: ', user);
     return user;
   }
 
+  // @UseInterceptors(new SerializeInterceptor(UserDto))
+  @Serialize(UserDto)
   @Get(':id')
   async getUserById(@Param('id') id: string) {
-    const foundUser = await this.usersService.findById(parseInt(id));
-    return foundUser;
-  }
+    console.log('handler is running');
 
-  @Get('/all')
-  async getAllUsersByEmail(@Query('email') email: string) {
-    const allUsers = await this.usersService.findByEmail(email);
-    return allUsers;
+    const foundUser = await this.usersService.findById(parseInt(id));
+
+    if (!foundUser) {
+      throw new NotFoundException('user not found!');
+    }
+
+    return foundUser;
   }
 
   @Patch(':id')
   async updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    console.log('id: ', id);
+    // console.log('id: ', id);
+    // console.log('body: ', body);
+    // const updatedUser = await this.usersService.updateUser(parseInt(id), body);
+    // console.log('updated User: ', updatedUser);
 
-    const updatedUser = await this.usersService.updateUser(parseInt(id), body);
-    console.log('updated User: ', updatedUser);
-
-    return updatedUser;
+    return this.usersService.updateUser(parseInt(id), body);
   }
 
   @Delete(':id')

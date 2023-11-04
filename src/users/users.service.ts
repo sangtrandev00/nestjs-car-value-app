@@ -2,7 +2,7 @@
 https://docs.nestjs.com/providers#services
 */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
@@ -42,10 +42,12 @@ export class UsersService {
     const user = await this.findById(id);
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     Object.assign(user, attrsUser);
+
+    // user {a: 1, b: 2} , attrsUser {a: 3, c: 4} => user {a: 3, b: 2, c: 4}
 
     console.log('user: ', user);
 
@@ -61,7 +63,7 @@ export class UsersService {
 
     // Trong đây có sử dụng Try Catch không ?
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
     return this.repo.remove(user);
   }
