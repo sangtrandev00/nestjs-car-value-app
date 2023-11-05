@@ -5,9 +5,11 @@ https://docs.nestjs.com/controllers#controllers
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { CreateReportDto } from './dtos/create-report.dto';
-import { classToPlain } from 'class-transformer';
-import { IReport } from 'src/types/report.type';
 import { UpdateReportDto } from './dtos/update-report.dto';
+import { CurrentUser } from 'src/users/decorators/current-user.decorator';
+import { User } from 'src/users/user.entity';
+import { Serialize } from 'src/interceptors/serialize.interceptor';
+import { ReportDto } from './dtos/report.dto';
 
 @Controller('reports')
 export class ReportsController {
@@ -23,10 +25,14 @@ export class ReportsController {
   }
 
   @Post()
-  async createReport(@Body() body: CreateReportDto) {
+  @Serialize(ReportDto)
+  async createReport(
+    @Body() body: CreateReportDto,
+    @CurrentUser() currentUser: User,
+  ) {
     console.log('create reports: ', body);
-    const reportBody = classToPlain(body) as IReport;
-    const report = await this.reportService.create(reportBody);
+    console.log('current User: ', currentUser);
+    const report = await this.reportService.create(body);
     return report;
   }
 

@@ -6,8 +6,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Report } from './report.entity';
-import { IReport } from 'src/types/report.type';
 import { CreateReportDto } from './dtos/create-report.dto';
+import { User } from 'src/users/user.entity';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class ReportsService {
@@ -19,6 +20,17 @@ export class ReportsService {
 
   create(reportDto: CreateReportDto) {
     const newReport = this.repo.create(reportDto);
+
+    const createdUser = plainToClass(User, {
+      id: 1,
+      email: 'nhatsan0101@gmail.com',
+      password: '123456',
+      isActive: true,
+    });
+    newReport.user = createdUser;
+
+    console.log('instance of new report: ', newReport);
+
     return this.repo.save(newReport);
   }
 
